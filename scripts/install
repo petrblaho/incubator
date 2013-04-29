@@ -33,6 +33,16 @@ done
 cd $TRIPLEO_ROOT/incubator
 scripts/install-dependencies
 
+# test for user's groups - it has to contain libvirtd
+set +e
+id | grep libvirtd
+if [ "$?" != "0" ]; then
+  echo "Please, log out and log in to be able to connect to libvirt"
+  echo "and then run this script again"
+  exit 1
+fi
+set -e
+
 cd $TRIPLEO_ROOT/bm_poseur/
 sudo ./bm_poseur --bridge-ip=none create-bridge
 
