@@ -7,11 +7,28 @@ if [ ! -d "$TRIPLEO_ROOT" ]; then
   mkdir $TRIPLEO_ROOT
 fi
 
-cd $TRIPLEO_ROOT
-git clone https://github.com/tripleo/incubator.git
-git clone https://github.com/tripleo/bm_poseur.git
-git clone https://github.com/stackforge/diskimage-builder.git
-git clone https://github.com/stackforge/tripleo-image-elements.git
+# make cloning inteligent (when git repo exists => pull)
+declare -a GITHUB_REPOS=('tripleo/incubator' 'tripleo/bm_poseur' 'stackforge/diskimage-builder' 'stackforge/tripleo-image-elements');
+for repo in "${GITHUB_REPOS[@]}"
+do
+  cd $TRIPLEO_ROOT
+  repo_dir=${repo##*/}
+  if [ -d "$repo_dir" ]; then
+    set +e
+    cd $repo_dir
+    git status
+    if [ "$?" == "0" ]; then
+      git pull
+    else
+      cd $TRIPLEO_ROOT
+      rm -rf $repo_dir
+      git clone "https://github.com/${repo}"
+    fi
+    set -e
+  else
+    git clone "https://github.com/${repo}"
+  fi
+done
 
 cd $TRIPLEO_ROOT/incubator
 scripts/install-dependencies
