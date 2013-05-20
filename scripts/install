@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# This is automated install script for TripleO
+# This file compiles commands found at ../notes.md file
+# and adds some tests and parts for better automation
+
 set -e
 
 export TRIPLEO_ROOT=~/tripleo
