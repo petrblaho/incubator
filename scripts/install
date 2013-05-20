@@ -6,6 +6,25 @@
 
 set -e
 
+# test for existing ssh public key
+KEY_LOCATION=~/.ssh
+declare -a POSSIBLE_KEY_FILES=('id_rsa.pub' 'id_dsa.pub');
+set +e
+for key_file in "${POSSIBLE_KEY_FILES[@]}"
+do
+  file "$KEY_LOCATION/$key_file" | grep "public key"
+  if [ "$?" == "0" ]; then
+    KEY_FILE="$KEY_LOCATION/$key_file"
+    break
+  fi
+done
+set -e
+if [ -z "$KEY_FILE" ]; then
+    echo "There is no public key for ssh access. Please create one and run again."
+    exit
+fi
+
+
 export TRIPLEO_ROOT=~/tripleo
 
 if [ ! -d "$TRIPLEO_ROOT" ]; then
@@ -52,8 +71,6 @@ cd $TRIPLEO_ROOT/bm_poseur/
 sudo ./bm_poseur --bridge-ip=none create-bridge
 
 sudo service libvirt-bin restart
-
-# FIXME: test for existing ssh public key
 
 cd $TRIPLEO_ROOT/diskimage-builder/
 bin/disk-image-create -u base -a i386 -o $TRIPLEO_ROOT/incubator/base
