@@ -89,7 +89,8 @@ sudo $TRIPLEO_ROOT/bm_poseur/bm_poseur --vms 1 --arch i686 create-vm
 
 MAC=`$TRIPLEO_ROOT/bm_poseur/bm_poseur get-macs`
 
-scp root@$BOOTSTRAP_IP:stackrc ~/stackrc
+# FIXME: temporary solution for not bugging with prompt
+scp -o StrictHostKeyChecking=no root@$BOOTSTRAP_IP:stackrc ~/stackrc
 sed -i "s/localhost/$BOOTSTRAP_IP/" ~/stackrc
 source ~/stackrc
 
