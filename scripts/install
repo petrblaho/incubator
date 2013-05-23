@@ -99,6 +99,10 @@ nova keypair-add --pub-key $SSH_KEY_FILE default
 nova baremetal-node-create ubuntu 1 512 10 $MAC
 
 # Wait for the following to show up in the nova-compute log on the bootstrap node
+
+# FIXME: temporary solution for waiting 
+sleep 60s
+
 # 2013-01-08 16:43:13 AUDIT nova.compute.resource_tracker [-] Auditing locally available compute resources
 # 2013-01-08 16:43:13 DEBUG nova.compute.resource_tracker [-] Hypervisor: free ram (MB): 512 from (pid=24853) _report_hypervisor_resource_view /opt/stack/nova/nova/compute/resource_tracker.py:327
 # 2013-01-08 16:43:13 DEBUG nova.compute.resource_tracker [-] Hypervisor: free disk (GB): 0 from (pid=24853) _report_hypervisor_resource_view /opt/stack/nova/nova/compute/resource_tracker.py:328
