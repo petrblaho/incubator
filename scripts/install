@@ -42,6 +42,7 @@ do
     cd $repo_dir
     git status
     if [ "$?" == "0" ]; then
+      git reset HEAD --hard
       git pull
     else
       cd $TRIPLEO_ROOT
