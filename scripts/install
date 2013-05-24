@@ -32,10 +32,12 @@ if [ ! -d "$TRIPLEO_ROOT" ]; then
 fi
 
 # inteligently clone repos (when git repo exists => pull)
-declare -a GITHUB_REPOS=('tripleo/incubator' 'tripleo/bm_poseur' 'stackforge/diskimage-builder' 'stackforge/tripleo-image-elements');
-for repo in "${GITHUB_REPOS[@]}"
+declare -a GITHUB_REPOS=('tripleo/incubator/master' 'tripleo/bm_poseur/master' 'stackforge/diskimage-builder/master' 'stackforge/tripleo-image-elements/master');
+for repo_with_commit in "${GITHUB_REPOS[@]}"
 do
   cd $TRIPLEO_ROOT
+  repo=${repo_with_commit%/*}
+  repo_commit=${repo_with_commit##*/}
   repo_dir=${repo##*/}
   if [ -d "$repo_dir" ]; then
     set +e
@@ -53,6 +55,7 @@ do
   else
     git clone "https://github.com/${repo}"
   fi
+  git checkout $repo_commit
 done
 
 # installs dependencies on host
