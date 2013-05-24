@@ -55,6 +55,8 @@ do
   else
     git clone "https://github.com/${repo}"
   fi
+  cd $TRIPLEO_ROOT
+  cd $repo_dir
   git checkout $repo_commit
 done
 
