@@ -4,6 +4,21 @@
 # This file compiles commands found at ../notes.md file
 # and adds some tests and parts for better automation
 
+# function for better handling of waiting till something completes
+# by Derek Higgins (https://github.com/derekhiggins)
+wait_for(){
+  LOOPS=$1
+  SLEEPTIME=$2
+  shift ; shift
+  i=0
+  while [ $i -lt $LOOPS ] ; do
+    i=$((i + 1))
+    $@ && return 0 || true
+    sleep $SLEEPTIME
+  done
+  return 1
+}
+
 set -e
 
 # test for existing ssh public key
@@ -74,9 +89,12 @@ if [ "$?" != "0" ]; then
 fi
 set -e
 
-# creates bridge for network with baremetal nodes
 cd $TRIPLEO_ROOT/bm_poseur/
-sudo ./bm_poseur --bridge-ip=none create-bridge
+
+# creates bridge for network with baremetal nodes
+# sometimes it just end with "libvir: XML-RPC error : Failed to connect socket to '/var/run/libvirt/libvirt-sock': No such file or directory"
+# so we will wait till it works
+wait_for 60 10 sudo ./bm_poseur --bridge-ip=none create-bridge
 
 sudo service libvirt-bin restart
 
@@ -91,17 +109,20 @@ scripts/boot-elements boot-stack -o bootstrap
 
 BOOTSTRAP_IP=`scripts/get-vm-ip bootstrap`
 
+# delete existing baremetal vms
+sudo $TRIPLEO_ROOT/bm_poseur/bm_poseur destroy-vm
+
 sudo $TRIPLEO_ROOT/bm_poseur/bm_poseur --vms 1 --arch i686 create-vm
 
 MAC=`$TRIPLEO_ROOT/bm_poseur/bm_poseur get-macs`
 
-# FIXME: temporary solution for not bugging with prompt
+# solution for not bugging with prompt
 scp -o StrictHostKeyChecking=no root@$BOOTSTRAP_IP:stackrc ~/stackrc
 sed -i "s/localhost/$BOOTSTRAP_IP/" ~/stackrc
 source ~/stackrc
 
-#nova keypair-add --pub-key ~/.ssh/id_rsa.pub default
-nova keypair-add --pub-key $SSH_KEY_FILE default
+# wait till all services in bootstrap node is booted
+wait_for 60 30 nova keypair-add --pub-key $SSH_KEY_FILE default
 
 nova baremetal-node-create ubuntu 1 512 10 $MAC
 
