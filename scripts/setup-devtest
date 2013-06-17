@@ -39,6 +39,9 @@ if [ -z "$SSH_KEY_FILE" ]; then
     exit
 fi
 
+
+# TODO: test for running ssh service and open port 22
+
 # creates tripleo root directory
 export TRIPLEO_ROOT=~/tripleo
 
@@ -96,8 +99,7 @@ cd $TRIPLEO_ROOT/bm_poseur/
 # so we will wait till it works
 wait_for 60 10 sudo ./bm_poseur --bridge-ip=none create-bridge
 
-cd $TRIPLEO_ROOT/diskimage-builder/
-bin/disk-image-create -u base -a i386 -o $TRIPLEO_ROOT/incubator/base
+$TRIPLEO_ROOT/diskimage-builder/bin/disk-image-create -u base -a i386 -o $TRIPLEO_ROOT/incubator/base 
 
 cd $TRIPLEO_ROOT/tripleo-image-elements/elements/boot-stack
 sed -i "s/\"user\": \"stack\",/\"user\": \"`whoami`\",/" config.json
@@ -112,8 +114,6 @@ sudo $TRIPLEO_ROOT/bm_poseur/bm_poseur destroy-vm
 
 sudo $TRIPLEO_ROOT/bm_poseur/bm_poseur --vms 1 --arch i686 create-vm
 
-MAC=`$TRIPLEO_ROOT/bm_poseur/bm_poseur get-macs`
-
 # solution for not bugging with prompt
 scp -o StrictHostKeyChecking=no root@$BOOTSTRAP_IP:stackrc ~/stackrc
 sed -i "s/localhost/$BOOTSTRAP_IP/" ~/stackrc
@@ -122,7 +122,11 @@ source ~/stackrc
 # wait till all services in bootstrap node is booted
 wait_for 60 30 nova keypair-add --pub-key $SSH_KEY_FILE default
 
-nova baremetal-node-create ubuntu 1 512 10 $MAC
+# inform nova about baremetal nodes
+for MAC in $($TRIPLEO_ROOT/bm_poseur/bm_poseur get-macs); do
+  nova baremetal-node-create ubuntu 1 512 10 $MAC
+  nova baremetal-interface-add $id $MAC
+done 
 
 # Wait for the following to show up in the nova-compute log on the bootstrap node
 
