@@ -96,12 +96,6 @@ cd $TRIPLEO_ROOT/bm_poseur/
 # so we will wait till it works
 wait_for 60 10 sudo ./bm_poseur --bridge-ip=none create-bridge
 
-if [ -f /etc/init.d/libvirt-bin ]; then
-  sudo service libvirt-bin restart
-else
-  sudo service libvirtd restart
-fi
-
 cd $TRIPLEO_ROOT/diskimage-builder/
 bin/disk-image-create -u base -a i386 -o $TRIPLEO_ROOT/incubator/base
 
